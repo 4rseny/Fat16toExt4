@@ -1,0 +1,52 @@
+name: Convert FAT16 system.img to EXT4 and Upload Artifact
+
+on:
+  workflow_dispatch:
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Get latest release info
+      id: get_release
+      uses: octokit/request-action@v2.x
+      with:
+        route: GET /repos/${{ github.repository }}/releases/latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Download system.img from latest release
+      run: |
+        sudo apt update
+        sudo apt install -y jq curl
+        ASSET_URL=$(echo '${{ steps.get_release.outputs.data }}' | jq -r '.assets[] | select(.name == "system.img") | .browser_download_url')
+        echo "Downloading from: $ASSET_URL"
+        curl -L "$ASSET_URL" -o system.img
+
+    - name: Install image tools
+      run: |
+        sudo apt install -y mtools e2fsprogs
+
+    - name: Extract contents from FAT16 system.img
+      run: |
+        mkdir -p fat16_contents
+        mcopy -i system.img -s :: fat16_contents/
+
+    - name: Create new EXT4 image
+      run: |
+        dd if=/dev/zero of=ext4_system.img bs=1M count=204
+        mkfs.ext4 -F ext4_system.img
+        mkdir -p ext4_mount
+        sudo mount -o loop ext4_system.img ext4_mount
+        sudo cp -a fat16_contents/* ext4_mount/
+        sudo umount ext4_mount
+
+    - name: Upload EXT4 system image as build-artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifact
+        path: ext4_system.img
