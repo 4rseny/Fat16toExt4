@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
    inputs:
       FILE:
-        description: 'Enter the file size in mb with 1mb bigger'
+        description: 'Enter the file size in mb with a little bit bigger(10~50mb)'
         required: true
 
 jobs:
