@@ -1,0 +1,40 @@
+name: Convert FAT16 system.img to EXT4
+
+on:
+  push:
+    paths:
+      - 'source/system.img'
+  workflow_dispatch:
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v3
+
+    - name: Install tools
+      run: |
+        sudo apt update
+        sudo apt install -y mtools e2fsprogs
+
+    - name: Extract contents from FAT16 using mtools
+      run: |
+        mkdir -p fat16_contents
+        mcopy -i source/system.img -s :: fat16_contents/
+
+    - name: Create EXT4 system image
+      run: |
+        dd if=/dev/zero of=ext4_system.img bs=1M count=512
+        mkfs.ext4 -F ext4_system.img
+        mkdir -p ext4_mount
+        sudo mount -o loop ext4_system.img ext4_mount
+        sudo cp -a fat16_contents/* ext4_mount/
+        sudo umount ext4_mount
+
+    - name: Upload EXT4 system.img
+      uses: actions/upload-artifact@v4
+      with:
+        name: ext4_system
+        path: ext4_system.img
