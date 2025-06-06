@@ -8,17 +8,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
-
-    - name: Get latest release info
-      id: get_release
-      uses: octokit/request-action@v2.x
-      with:
-        route: GET /repos/${{ github.repository }}/releases/latest
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+    
+    
     - name: Download system.img from latest release
       run: |
         sudo apt update
