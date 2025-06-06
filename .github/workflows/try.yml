@@ -35,7 +35,7 @@ jobs:
         mcopy -i system.img -s :: fat16_contents/
     - name: Create new EXT4 image
       run: |
-        dd if=/dev/zero of=ext4_system.img bs=1M count=204
+        dd if=/dev/zero of=ext4_system.img bs=1M count=250
         mkfs.ext4 -F ext4_system.img
         mkdir -p ext4_mount
         sudo mount -o loop ext4_system.img ext4_mount
