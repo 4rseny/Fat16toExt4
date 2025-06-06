@@ -2,6 +2,10 @@ name: Convert FAT16 system.img to EXT4 and Upload Artifact
 
 on:
   workflow_dispatch:
+   inputs:
+      FILE:
+        description: 'Enter the file size in mb with 1mb bigger'
+        required: true
 
 jobs:
   convert:
@@ -38,7 +42,7 @@ jobs:
 
     - name: Create new EXT4 image
       run: |
-        dd if=/dev/zero of=ext4_system.img bs=1M count=512
+        dd if=/dev/zero of=ext4_system.img bs=1M count={{github.event.inputs.FILE}}
         mkfs.ext4 -F ext4_system.img
         mkdir -p ext4_mount
         sudo mount -o loop ext4_system.img ext4_mount
